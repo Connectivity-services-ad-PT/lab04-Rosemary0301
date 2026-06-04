@@ -1,0 +1,5 @@
+extends: [[spectral:oas, recommended]]
+rules:
+  info-contact: off
+  info-description: off
+  operation-description: off

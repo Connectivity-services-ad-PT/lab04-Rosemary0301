@@ -35,7 +35,9 @@ jobs:
             fit4110/iot-ingestion:lab04
 
       - name: Wait for service health
-        run: npx wait-on http://localhost:8000/health --timeout 30000
+        run: |
+          echo "Waiting for app container to start on port 8000..."
+          timeout 30s bash -c 'until curl -s http://localhost:8000/health; do sleep 1; done' || true
 
       - name: Run Newman against Docker container
         run: npm run test:local

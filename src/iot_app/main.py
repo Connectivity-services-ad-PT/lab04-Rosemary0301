@@ -153,7 +153,10 @@ async def validation_exception_handler(
     )
 
 
-def verify_bearer_token(authorization: Optional[str] = Header(default=None)) -> None:
+def verify_bearer_token(request: Request) -> None:
+    # Bóc tách trực tiếp header từ request gốc để tránh xung đột thư viện cũ
+    authorization: Optional[str] = request.headers.get("Authorization")
+    
     if not authorization:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -161,7 +164,7 @@ def verify_bearer_token(authorization: Optional[str] = Header(default=None)) -> 
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 title="Unauthorized",
                 detail="Missing Authorization header",
-                problem_type="https://smart-campus.local/problems/unauthorized",
+                problem_type="https://smart-campus.local",
             ),
         )
 
@@ -173,7 +176,7 @@ def verify_bearer_token(authorization: Optional[str] = Header(default=None)) -> 
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 title="Unauthorized",
                 detail="Invalid bearer token",
-                problem_type="https://smart-campus.local/problems/unauthorized",
+                problem_type="https://smart-campus.local",
             ),
         )
 

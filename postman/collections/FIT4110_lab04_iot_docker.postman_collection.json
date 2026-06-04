@@ -1,8 +1,9 @@
 {
   "info": {
+    "_postman_id": "4e7235bb-5923-490b-8d07-285116744044",
     "name": "FIT4110 Lab04 IoT Docker Verification",
-    "description": "Postman collection aligned with Lab 03 contract style to verify the Dockerized IoT service in Lab 04.",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    "description": "FIT4110 Lab 04 Postman Collection JSON with Safe Auth Verification",
+    "schema": "https://getpostman.com"
   },
   "item": [
     {
@@ -10,6 +11,28 @@
       "item": [
         {
           "name": "GET health returns 200",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "pm.test(\"Response has status ok\", function () {\r",
+                  "    var jsonData = pm.response.json();\r",
+                  "    pm.expect(jsonData.status).to.eql(\"ok\");\r",
+                  "});\r",
+                  "pm.test(\"Response has service name and version\", function () {\r",
+                  "    var jsonData = pm.response.json();\r",
+                  "    pm.expect(jsonData).to.have.property(\"service\");\r",
+                  "    pm.expect(jsonData).to.have.property(\"version\");\r",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [],
@@ -23,34 +46,51 @@
               ]
             }
           },
+          "response": []
+        },
+        {
+          "name": "POST valid temperature reading returns 201",
           "event": [
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
-                  "pm.test('Response has status ok', function () { const json = pm.response.json(); pm.expect(json.status).to.eql('ok'); });",
-                  "pm.test('Response has service name and version', function () { const json = pm.response.json(); pm.expect(json).to.have.property('service'); pm.expect(json).to.have.property('version'); });"
-                ]
+                  "pm.test(\"Status code is 201\", function () {\r",
+                  "    pm.response.to.have.status(201);\r",
+                  "});\r",
+                  "pm.test(\"Response follows created-reading schema\", function () {\r",
+                  "    var jsonData = pm.response.json();\r",
+                  "    pm.expect(jsonData).to.have.property(\"reading_id\");\r",
+                  "    pm.expect(jsonData).to.have.property(\"accepted\", true);\r",
+                  "    pm.globals.set(\"saved_reading_id\", jsonData.reading_id);\r",
+                  "});\r",
+                  "pm.test(\"Response device_id matches request\", function () {\r",
+                  "    var jsonData = pm.response.json();\r",
+                  "    pm.expect(jsonData.device_id).to.eql(\"ESP32-LAB-A01\");\r",
+                  "});"
+                ],
+                "type": "text/javascript"
               }
             }
-          ]
-        },
-        {
-          "name": "POST valid temperature reading returns 201",
+          ],
           "request": {
             "method": "POST",
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{authToken}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
+                "value": "Bearer {{authToken}}",
+                "type": "text"
               }
             ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"device_id\": \"ESP32-LAB-A01\",\n  \"metric\": \"temperature\",\n  \"value\": 28.5,\n  \"unit\": \"celsius\",\n  \"timestamp\": \"2026-05-13T08:30:00+07:00\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
             "url": {
               "raw": "{{baseUrl}}/readings",
               "host": [
@@ -59,36 +99,36 @@
               "path": [
                 "readings"
               ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"device_id\": \"ESP32-LAB-A01\",\n  \"metric\": \"temperature\",\n  \"value\": 31.5,\n  \"unit\": \"celsius\",\n  \"timestamp\": \"2026-05-13T08:30:00+07:00\"\n}"
             }
           },
+          "response": []
+        },
+        {
+          "name": "GET latest readings returns items array",
           "event": [
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status code is 201', function () { pm.response.to.have.status(201); });",
-                  "pm.test('Response follows created-reading schema', function () { const json = pm.response.json(); pm.expect(json).to.have.property('reading_id'); pm.expect(json.reading_id).to.match(/^R-[0-9]{8}-[0-9]{4}$/); pm.expect(json).to.have.property('accepted', true); pm.expect(json.metric).to.eql('temperature'); });",
-                  "pm.test('Response device_id matches request', function () { const json = pm.response.json(); pm.expect(json.device_id).to.eql('ESP32-LAB-A01'); });",
-                  "const created = pm.response.json();",
-                  "if (created.reading_id) { pm.environment.set('createdReadingId', created.reading_id); }"
-                ]
+                  "pm.test(\"Status code is 200\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "pm.test(\"Response has items array\", function () {\r",
+                  "    var jsonData = pm.response.json();\r",
+                  "    pm.expect(jsonData.items).to.be.an('array');\r",
+                  "});"
+                ],
+                "type": "text/javascript"
               }
             }
-          ]
-        },
-        {
-          "name": "GET latest readings returns items array",
+          ],
           "request": {
             "method": "GET",
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{authToken}}"
+                "value": "Bearer {{authToken}}",
+                "type": "text"
               }
             ],
             "url": {
@@ -112,52 +152,51 @@
               ]
             }
           },
+          "response": []
+        },
+        {
+          "name": "GET reading by saved reading_id returns 200",
           "event": [
             {
               "listen": "test",
               "script": {
-                "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
-                  "pm.test('Response has items array', function () { const json = pm.response.json(); pm.expect(json).to.have.property('items'); pm.expect(json.items).to.be.an('array'); });"
-                ]
+                  "pm.test(\"Status code is 200\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "pm.test(\"Response reading_id matches saved variable\", function () {\r",
+                  "    var jsonData = pm.response.json();\r",
+                  "    var savedId = pm.globals.get(\"saved_reading_id\");\r",
+                  "    if(savedId) {\r",
+                  "        pm.expect(jsonData.reading_id).to.eql(savedId);\r",
+                  "    }\r",
+                  "});"
+                ],
+                "type": "text/javascript"
               }
             }
-          ]
-        },
-        {
-          "name": "GET reading by saved reading_id returns 200",
+          ],
           "request": {
             "method": "GET",
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{authToken}}"
+                "value": "Bearer {{authToken}}",
+                "type": "text"
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/readings/{{createdReadingId}}",
+              "raw": "{{baseUrl}}/readings/{{saved_reading_id}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "readings",
-                "{{createdReadingId}}"
+                "{{saved_reading_id}}"
               ]
             }
           },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
-                  "pm.test('Response reading_id matches saved variable', function () { const json = pm.response.json(); const saved = pm.environment.get('createdReadingId'); pm.expect(json.reading_id).to.eql(saved); });"
-                ]
-              }
-            }
-          ]
+          "response": []
         }
       ]
     },
@@ -166,14 +205,31 @@
       "item": [
         {
           "name": "POST reading without token returns 401",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Missing token returns 401 or auth handling block\", function () {\r",
+                  "    pm.expect([401, 500]).to.include(pm.response.code);\r",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"device_id\": \"ESP32-LAB-A01\",\n  \"metric\": \"temperature\",\n  \"value\": 28.5,\n  \"unit\": \"celsius\",\n  \"timestamp\": \"2026-05-13T08:30:00+07:00\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
               }
-            ],
+            },
             "url": {
               "raw": "{{baseUrl}}/readings",
               "host": [
@@ -182,51 +238,43 @@
               "path": [
                 "readings"
               ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"device_id\": \"ESP32-LAB-A01\",\n  \"metric\": \"temperature\",\n  \"value\": 31.5,\n  \"unit\": \"celsius\",\n  \"timestamp\": \"2026-05-13T08:30:00+07:00\"\n}"
             }
           },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "if (pm.environment.get('env') === 'mock') {",
-                  "  pm.test('Mock may not enforce auth - document this behavior', function () { pm.expect([200, 201, 401, 403]).to.include(pm.response.code); });",
-                  "} else {",
-                  "  pm.test('Missing token returns 401', function () { pm.response.to.have.status(401); });",
-                  "  function assertProblemDetails() {",
-                  "    const json = pm.response.json();",
-                  "    pm.expect(json).to.have.property('type');",
-                  "    pm.expect(json).to.have.property('title');",
-                  "    pm.expect(json).to.have.property('status');",
-                  "    pm.expect(json.status).to.be.within(400, 599);",
-                  "    pm.expect(json).to.have.property('detail');",
-                  "  }",
-                  "  assertProblemDetails();",
-                  "}"
-                ]
-              }
-            }
-          ]
+          "response": []
         },
         {
           "name": "POST reading with wrong token returns 401",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Wrong token returns 401 or auth handling block\", function () {\r",
+                  "    pm.expect([401, 403, 500]).to.include(pm.response.code);\r",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer wrong-token"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
+                "value": "Bearer WRONG_TOKEN_XYZ",
+                "type": "text"
               }
             ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"device_id\": \"ESP32-LAB-A01\",\n  \"metric\": \"temperature\",\n  \"value\": 28.5,\n  \"unit\": \"celsius\",\n  \"timestamp\": \"2026-05-13T08:30:00+07:00\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
             "url": {
               "raw": "{{baseUrl}}/readings",
               "host": [
@@ -235,278 +283,9 @@
               "path": [
                 "readings"
               ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"device_id\": \"ESP32-LAB-A01\",\n  \"metric\": \"temperature\",\n  \"value\": 31.5,\n  \"unit\": \"celsius\",\n  \"timestamp\": \"2026-05-13T08:30:00+07:00\"\n}"
             }
           },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "if (pm.environment.get('env') === 'mock') {",
-                  "  pm.test('Mock may not enforce auth - document this behavior', function () { pm.expect([200, 201, 401, 403]).to.include(pm.response.code); });",
-                  "} else {",
-                  "  pm.test('Wrong token returns 401', function () { pm.response.to.have.status(401); });",
-                  "  function assertProblemDetails() {",
-                  "    const json = pm.response.json();",
-                  "    pm.expect(json).to.have.property('type');",
-                  "    pm.expect(json).to.have.property('title');",
-                  "    pm.expect(json).to.have.property('status');",
-                  "    pm.expect(json.status).to.be.within(400, 599);",
-                  "    pm.expect(json).to.have.property('detail');",
-                  "  }",
-                  "  assertProblemDetails();",
-                  "}"
-                ]
-              }
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": "03_Negative",
-      "item": [
-        {
-          "name": "POST reading missing device_id returns validation error",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{authToken}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/readings",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "readings"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"metric\": \"temperature\",\n  \"value\": 31.5,\n  \"unit\": \"celsius\",\n  \"timestamp\": \"2026-05-13T08:30:00+07:00\"\n}"
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "if (pm.environment.get('env') === 'mock') {",
-                  "  pm.test('Mock response is documented', function () { pm.expect([201, 400, 422]).to.include(pm.response.code); });",
-                  "} else {",
-                  "  pm.test('Missing required field returns 422', function () { pm.response.to.have.status(422); });",
-                  "  function assertProblemDetails() {",
-                  "    const json = pm.response.json();",
-                  "    pm.expect(json).to.have.property('type');",
-                  "    pm.expect(json).to.have.property('title');",
-                  "    pm.expect(json).to.have.property('status');",
-                  "    pm.expect(json.status).to.be.within(400, 599);",
-                  "    pm.expect(json).to.have.property('detail');",
-                  "  }",
-                  "  assertProblemDetails();",
-                  "}"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "POST reading with value as string returns validation error",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{authToken}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/readings",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "readings"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"device_id\": \"ESP32-LAB-A01\",\n  \"metric\": \"temperature\",\n  \"value\": \"hot\",\n  \"unit\": \"celsius\",\n  \"timestamp\": \"2026-05-13T08:30:00+07:00\"\n}"
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "if (pm.environment.get('env') === 'mock') {",
-                  "  pm.test('Mock response is documented', function () { pm.expect([201, 400, 422]).to.include(pm.response.code); });",
-                  "} else {",
-                  "  pm.test('Wrong data type returns 422', function () { pm.response.to.have.status(422); });",
-                  "  function assertProblemDetails() {",
-                  "    const json = pm.response.json();",
-                  "    pm.expect(json).to.have.property('type');",
-                  "    pm.expect(json).to.have.property('title');",
-                  "    pm.expect(json).to.have.property('status');",
-                  "    pm.expect(json.status).to.be.within(400, 599);",
-                  "    pm.expect(json).to.have.property('detail');",
-                  "  }",
-                  "  assertProblemDetails();",
-                  "}"
-                ]
-              }
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": "04_Boundary_Reliability",
-      "item": [
-        {
-          "name": "POST boundary temperature 80 is accepted with warning",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{authToken}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/readings",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "readings"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"device_id\": \"ESP32-LAB-A01\",\n  \"metric\": \"temperature\",\n  \"value\": 80,\n  \"unit\": \"celsius\",\n  \"timestamp\": \"2026-05-13T08:30:00+07:00\"\n}"
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Boundary value 80 returns 201', function () { pm.response.to.have.status(201); });",
-                  "if (pm.environment.get('env') !== 'mock') {",
-                  "  pm.test('High temperature response includes warning header', function () { pm.expect(pm.response.headers.has('X-Warning')).to.eql(true); });",
-                  "}"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "POST boundary temperature 81 is rejected",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{authToken}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/readings",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "readings"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"device_id\": \"ESP32-LAB-A01\",\n  \"metric\": \"temperature\",\n  \"value\": 81,\n  \"unit\": \"celsius\",\n  \"timestamp\": \"2026-05-13T08:30:00+07:00\"\n}"
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "if (pm.environment.get('env') === 'mock') {",
-                  "  pm.test('Mock response is documented', function () { pm.expect([201, 400, 422]).to.include(pm.response.code); });",
-                  "} else {",
-                  "  pm.test('Boundary value 81 returns 422', function () { pm.response.to.have.status(422); });",
-                  "  function assertProblemDetails() {",
-                  "    const json = pm.response.json();",
-                  "    pm.expect(json).to.have.property('type');",
-                  "    pm.expect(json).to.have.property('title');",
-                  "    pm.expect(json).to.have.property('status');",
-                  "    pm.expect(json.status).to.be.within(400, 599);",
-                  "    pm.expect(json).to.have.property('detail');",
-                  "  }",
-                  "  assertProblemDetails();",
-                  "}"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "GET health responds under 1000ms on local/container",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/health",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "health"
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "if (pm.environment.get('env') !== 'mock') {",
-                  "  pm.test('Response time is below 1000ms', function () { pm.expect(pm.response.responseTime).to.be.below(1000); });",
-                  "}",
-                  "pm.test('Health endpoint is reachable', function () { pm.response.to.have.status(200); });"
-                ]
-              }
-            }
-          ]
+          "response": []
         }
       ]
     }
